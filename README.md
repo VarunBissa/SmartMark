@@ -108,6 +108,35 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
+---
+
+## 🔧 Challenges & Solutions
+
+### 1. Vercel Deployment & Environment Variables
+**Problem:**
+One of the main challenges encountered was a build failure during Vercel deployment. The error message indicated that the Supabase client could not be initialized because the `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` were missing. This occurred because Next.js attempts to statically generate pages during the build process. When the code tried to initialize the Supabase client to fetch data or check authentication, it failed due to the missing environment variables in the Vercel environment.
+
+**Solution:**
+To resolve this, we ensured that the `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` were correctly added to the **Environment Variables** section in the Vercel Project Settings. Additionally, we implemented fallback values in `lib/supabase/client.ts` and `lib/supabase/server.ts`. This ensures that `createClient` doesn't throw an immediate error during build time when keys might not be strictly necessary (e.g., for static analysis), while still requiring valid keys for actual data fetching at runtime.
+
+### 2. Middleware for Protected Routes
+**Problem:**
+We needed a way to restrict access to the dashboard (`/dashboard`) so that only authenticated users could view it, while also redirecting authenticated users away from the login page (`/login`) to the dashboard. Doing this inside components can lead to content flashing (showing the dashboard briefly before redirecting).
+
+**Solution:**
+We implemented Next.js Middleware in `middleware.ts`. This file runs before a request is completed. By creating a Supabase client within the middleware, we can check for an active user session.
+- If a user tries to access `/dashboard` without a session, they are redirected to `/`.
+- If a logged-in user visits `/` or `/login`, they are redirected to `/dashboard`.
+This logic happens on the server side, ensuring a smooth and secure transition for the user.
+
+### 3. Real-Time UI Updates
+**Problem:**
+A bookmark manager needs to feel snappy. When a user adds or deletes a bookmark, the change should be reflected immediately without a page reload. Relying solely on re-fetching data can differ in speed.
+
+**Solution:**
+We leveraged Supabase's Realtime capabilities. By subscribing to the `bookmarks` table using `postgres_changes`, the application listens for `INSERT` and `DELETE` events. When an event is received, the local state is updated instantly, providing a seamless "live" experience across multiple tabs or devices.
+
+---
 
 ## 🔮 Future Roadmap
 
@@ -115,4 +144,3 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 - [ ] **Search**: Full-text search for titles and URLs.
 - [ ] **Metadata Fetching**: Automatically fetch page titles, descriptions, and og:images from URLs.
 - [ ] **Drag & Drop**: Reorder bookmarks manually.
-
