@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Smart Bookmark App",
+  title: "SmartMark",
   description: "Simple bookmark manager with Google OAuth",
   icons: {
     icon: '/icon.png',
